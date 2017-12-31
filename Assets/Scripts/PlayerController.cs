@@ -4,37 +4,66 @@ using System.Collections;
 public class PlayerController : MonoBehaviour {
 
     public float speed;
+    public bool playerWin;
 
+    private float count;
     private Rigidbody rb;
     private float timer;
-    private float count;
-
+    private Animator anim;
+    private GameObject enemyObject;
+    private SumoController enemySumoController;
+    private float enemyCount;
 
 	void Start () {
         rb = GetComponent<Rigidbody>();
-        timer = 0f;
-        count = 0;
+        anim = GetComponent<Animator>();
+        timer = 0.0f;
+        count = 0.0f;
+        enemyObject = GameObject.FindGameObjectWithTag("Enemy");
+        enemySumoController = enemyObject.GetComponent<SumoController>();
+        enemyCount = enemySumoController.count;
 	}
 	
-	void Update () {
+	void FixedUpdate () {
         timer += Time.deltaTime; //timer increases with time
-        if (timer<3) //if timer is <3sec
+        if (timer<=12 && timer>=2) //if timer <12 and >2 seconds
         {
+            Charging(); //execute charging function
             if (Input.GetButtonDown("Fire1")) //if you press anyBUTTON (NOT ANY KEY BECAUSE BUTTON IS DEFINED, KEY IS UNDEFINED!)
             {
                 count += 1f; //count will increase by 1
             }
         }
-        else { //if timer is not <3sec
-            rb.AddForce(count * speed, 0, 0, ForceMode.Impulse); //add force equal to count*speed (public) translated by x axis with an impulse to initiate movement.
+        else if (timer >12) {
+            Attack(); //executes attack function
+            Battle();
+            if (playerWin == true)
+            {
+                rb.AddForce(count * speed, 0, 0, ForceMode.Impulse); //add force equal to count*speed (public) translated by x axis with an impulse to initiate movement.
+            }
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    void Attack()
     {
-        if (other.CompareTag("Enemy"))
+        anim.SetBool("isAttacking", true);//initiates trigger isAttacking
+        anim.SetBool("isCharging", false);
+    }
+
+    void Charging()
+    {
+        anim.SetBool("isCharging", true); //initiates trigger isCharging
+    }
+
+    void Battle()
+    {
+        if (enemyCount >= count)
         {
-            rb.velocity = new Vector3 (0, 0, 0);
+            playerWin = false;
+        }
+        else if (count > enemyCount)
+        {
+            playerWin = true;
         }
     }
 }
